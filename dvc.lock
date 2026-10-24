@@ -1,0 +1,81 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python src/data/prepare.py
+    deps:
+    - path: data/raw/baf/Base.csv
+      hash: md5
+      md5: 47b16cd0c697d1c6439efc145ae70124
+      size: 213427735
+    - path: src/data/prepare.py
+      hash: md5
+      md5: 5664d1c732ea06369f4724388ea0ae81
+      size: 1190
+    params:
+      params.yaml:
+        prepare:
+          raw_path: data/raw/baf/Base.csv
+          target: fraud_bool
+          month_col: month
+          train_months:
+          - 0
+          - 1
+          - 2
+          - 3
+          - 4
+          - 5
+          test_months:
+          - 6
+          - 7
+          missing_value_cols:
+          - prev_address_months_count
+          - current_address_months_count
+          - intended_balcon_amount
+          - bank_months_count
+          - session_length_in_minutes
+          - device_distinct_emails_8w
+    outs:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: a8533946c38681c5500d4b0812eff3a1
+      size: 44801843
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 835999d8ad6f74f26f68a97f440a2c55
+      size: 173733715
+  train:
+    cmd: python src/models/train.py
+    deps:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: a8533946c38681c5500d4b0812eff3a1
+      size: 44801843
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 835999d8ad6f74f26f68a97f440a2c55
+      size: 173733715
+    - path: src/models/train.py
+      hash: md5
+      md5: 22f73e384a6e4663bb7140874ea237bb
+      size: 4157
+    params:
+      params.yaml:
+        prepare.month_col: month
+        prepare.target: fraud_bool
+        train:
+          mlflow_experiment: fraud-detection-baf
+          model: logistic_regression
+          C: 1.0
+          max_iter: 200
+          class_weight: balanced
+          seed: 42
+          fpr_target: 0.05
+    outs:
+    - path: metrics/metrics.json
+      hash: md5
+      md5: be9c2cb6b49856f136f922413958760b
+      size: 116
+    - path: models/model.joblib
+      hash: md5
+      md5: 5582e8e514107e6f8bd92d533d63ddf2
+      size: 7386

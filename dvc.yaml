@@ -1,0 +1,27 @@
+stages:
+  prepare:
+    cmd: python src/data/prepare.py
+    deps:
+      - src/data/prepare.py
+      - data/raw/baf/Base.csv
+    params:
+      - prepare
+    outs:
+      - data/processed/train.csv
+      - data/processed/test.csv
+
+  train:
+    cmd: python src/models/train.py
+    deps:
+      - src/models/train.py
+      - data/processed/train.csv
+      - data/processed/test.csv
+    params:
+      - prepare.target
+      - prepare.month_col
+      - train
+    outs:
+      - models/model.joblib
+    metrics:
+      - metrics/metrics.json:
+          cache: false
