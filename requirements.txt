@@ -1,7 +1,7 @@
 pandas
 scikit-learn
-fastapi
-uvicorn
 mlflow
+pyyaml
+joblib
+dvc[gdrive]
 pytest
-dvc

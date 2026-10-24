@@ -1,0 +1,24 @@
+prepare:
+  raw_path: data/raw/baf/Base.csv
+  target: fraud_bool
+  month_col: month
+  # Entrainement sur les 6 premiers mois, test sur les 2 derniers (split temporel)
+  train_months: [0, 1, 2, 3, 4, 5]
+  test_months: [6, 7]
+  # Colonnes ou -1 code une valeur manquante (a verifier avec check_missing.py)
+  missing_value_cols:
+    - prev_address_months_count
+    - current_address_months_count
+    - intended_balcon_amount
+    - bank_months_count
+    - session_length_in_minutes
+    - device_distinct_emails_8w
+
+train:
+  mlflow_experiment: fraud-detection-baf
+  model: logistic_regression
+  C: 1.0
+  max_iter: 200
+  class_weight: balanced
+  seed: 42
+  fpr_target: 0.05
