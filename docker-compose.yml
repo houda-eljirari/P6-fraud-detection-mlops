@@ -1,8 +1,14 @@
 services:
-  app:
+  pipeline:
     build:
       context: .
       dockerfile: docker/Dockerfile
-    container_name: fraud-detection-app
-    ports:
-      - "8000:8000"
+    image: p6-fraud-pipeline:latest
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      - MLFLOW_TRACKING_URI=sqlite:///mlflow_docker.db
+      - DVC_NO_ANALYTICS=1
+      - GIT_PYTHON_REFRESH=quiet
+    command: ["dvc", "repro", "--force"]

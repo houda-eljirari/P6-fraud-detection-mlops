@@ -221,3 +221,4 @@ __marimo__/
 mlflow.db
 mlruns/
 .env
+mlflow_docker.db
