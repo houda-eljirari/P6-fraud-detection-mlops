@@ -58,9 +58,8 @@ stages:
       size: 172938725
     - path: src/models/train.py
       hash: md5
-      md5: 22f73e384a6e4663bb7140874ea237bb
-      size: 4157
-      isexec: true
+      md5: 6fce09b1e99e7298d5acb57032c1a48f
+      size: 4188
     params:
       params.yaml:
         prepare.month_col: month
@@ -76,9 +75,9 @@ stages:
     outs:
     - path: metrics/metrics.json
       hash: md5
-      md5: 2f90280e76cc7cc1638be9bbb48114f4
-      size: 112
+      md5: be9c2cb6b49856f136f922413958760b
+      size: 116
     - path: models/model.joblib
       hash: md5
-      md5: 0e702a22f512e1e0031238c2304d1e05
+      md5: 5582e8e514107e6f8bd92d533d63ddf2
       size: 7386
