@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Installer les dependances
+        run: pip install pandas scikit-learn mlflow pyyaml joblib pytest ruff
+
+      - name: Lint (ruff)
+        run: ruff check src tests
+
+      - name: Tests unitaires et validation du modele
+        run: pytest -q
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: lint-and-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Construire l'image Docker
+        run: docker build -f docker/Dockerfile -t p6-fraud-pipeline .
