@@ -32,7 +32,6 @@ stages:
           missing_value_cols:
           - prev_address_months_count
           - current_address_months_count
-          - intended_balcon_amount
           - bank_months_count
           - session_length_in_minutes
           - device_distinct_emails_8w
@@ -60,6 +59,7 @@ stages:
       hash: md5
       md5: 6fce09b1e99e7298d5acb57032c1a48f
       size: 4188
+      isexec: true
     params:
       params.yaml:
         prepare.month_col: month
@@ -75,9 +75,9 @@ stages:
     outs:
     - path: metrics/metrics.json
       hash: md5
-      md5: be9c2cb6b49856f136f922413958760b
-      size: 116
+      md5: 2f90280e76cc7cc1638be9bbb48114f4
+      size: 112
     - path: models/model.joblib
       hash: md5
-      md5: 5582e8e514107e6f8bd92d533d63ddf2
+      md5: 0e702a22f512e1e0031238c2304d1e05
       size: 7386

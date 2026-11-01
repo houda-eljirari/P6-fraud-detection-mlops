@@ -209,6 +209,45 @@ Aucun secret n'est stocké dans le dépôt. Les identifiants OAuth du remote DVC
 - **Google affiche « Cette application est bloquée »** : l'identifiant OAuth par défaut de DVC est bloqué. Créer son propre identifiant OAuth dans Google Cloud Console et le renseigner avec `dvc remote modify --local`.
 - **`Base.csv.dvc` apparaît modifié (`isexec: true`) après un passage dans Docker** : artefact du montage de volume sous Windows, ne pas le commiter.
 
+## API de scoring
+
+L'API charge `models/model.joblib` au démarrage et expose :
+
+| Endpoint | Rôle |
+|---|---|
+| `GET /health` | Liveness : le processus répond |
+| `GET /ready` | Readiness : le modèle est chargé (503 sinon) |
+| `POST /predict` | Probabilité de fraude et décision pour une demande d'ouverture de compte |
+
+Documentation interactive (Swagger) : http://localhost:8000/docs — l'exemple de requête est prérempli avec une vraie ligne de `Base.csv`.
+
+Lancement (entraîne le modèle dans le conteneur, puis démarre l'API) :
+
+```bash
+docker compose up --build
+```
+
+Pour redémarrer l'API seule avec le modèle déjà entraîné :
+
+```bash
+docker compose up --no-deps api
+```
+
+Exemple d'appel (PowerShell) :
+
+```powershell
+curl.exe http://localhost:8000/health
+curl.exe http://localhost:8000/ready
+```
+
+Les valeurs `-1` ou `null` des cinq colonnes à valeurs manquantes sont traitées comme des valeurs manquantes, comme dans le pipeline.
+
+| Variable | Rôle | Valeur par défaut |
+|---|---|---|
+| `MODEL_PATH` | Chemin du modèle | `models/model.joblib` |
+| `THRESHOLD` | Seuil de décision `is_fraud` | `0.5` (à calibrer avec un coût métier) |
+
+
 ## Reproductibilité
 
 Tout ce qui définit le résultat est versionné : le code, les réglages (`params.yaml`) et la définition du pipeline (`dvc.yaml`) dans Git, les données dans DVC, et l'environnement d'exécution est figé par Docker. Relancé depuis un clone vierge, le pipeline redonne exactement les mêmes métriques.

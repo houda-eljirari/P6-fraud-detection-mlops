@@ -4,4 +4,7 @@ mlflow
 pyyaml
 joblib
 dvc[gdrive]
+fastapi
+uvicorn
+httpx
 pytest

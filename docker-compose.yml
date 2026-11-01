@@ -1,14 +1,36 @@
+# Service de base partage par le pipeline et l'API (meme image, projet monte dans /app)
+x-python-service: &python-service
+  build:
+    context: .
+    dockerfile: docker/Dockerfile
+  image: p6-fraud-pipeline:latest
+  working_dir: /app
+  volumes:
+    - .:/app
+
 services:
+  # 1. Entraine le modele dans le conteneur (Python 3.12), puis s'arrete
   pipeline:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    image: p6-fraud-pipeline:latest
-    working_dir: /app
-    volumes:
-      - .:/app
+    <<: *python-service
     environment:
       - MLFLOW_TRACKING_URI=sqlite:///mlflow_docker.db
       - DVC_NO_ANALYTICS=1
-      - GIT_PYTHON_REFRESH=quiet
     command: ["dvc", "repro", "--force"]
+
+  # 2. Sert le modele entraine, une fois le pipeline termine avec succes
+  api:
+    <<: *python-service
+    depends_on:
+      pipeline:
+        condition: service_completed_successfully
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_PATH=models/model.joblib
+      - THRESHOLD=0.5
+    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

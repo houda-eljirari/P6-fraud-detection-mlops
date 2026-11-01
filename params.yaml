@@ -9,7 +9,6 @@ prepare:
   missing_value_cols:
     - prev_address_months_count
     - current_address_months_count
-    - intended_balcon_amount
     - bank_months_count
     - session_length_in_minutes
     - device_distinct_emails_8w
