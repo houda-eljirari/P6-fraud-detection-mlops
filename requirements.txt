@@ -7,4 +7,5 @@ dvc[gdrive]
 fastapi
 uvicorn
 httpx
+prometheus-client
 pytest
