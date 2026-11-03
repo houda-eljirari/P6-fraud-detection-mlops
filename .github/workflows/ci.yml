@@ -18,7 +18,7 @@ jobs:
           cache: pip
 
       - name: Installer les dependances
-        run: pip install pandas scikit-learn mlflow pyyaml joblib fastapi httpx pytest ruff
+        run: pip install pandas scikit-learn mlflow pyyaml joblib fastapi httpx prometheus-client pytest ruff
 
       - name: Lint (ruff)
         run: ruff check src tests

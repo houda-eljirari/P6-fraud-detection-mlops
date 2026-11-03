@@ -254,7 +254,35 @@ Tout ce qui définit le résultat est versionné : le code, les réglages (`para
 
 ## Supervision (à venir)
 
-La supervision avancée prévue comprend : métriques de l'API, performance du modèle lorsque les labels sont disponibles, suivi du taux de fraude, détection de data drift (PSI entre les données de référence et les données récentes) et alertes en cas de dégradation.
+## Supervision : métriques Prometheus
+
+L'API expose `GET /metrics` au format Prometheus. Un service Prometheus (`http://localhost:9090`) collecte ces métriques toutes les 5 secondes.
+
+| Métrique | Type | Rôle |
+|---|---|---|
+| `http_requests_total{method,path,status}` | compteur | Requêtes reçues, par route et code de statut |
+| `http_request_duration_seconds{path}` | histogramme | Latence de traitement |
+| `fraud_predictions_total{decision}` | compteur | Prédictions `fraud` / `legit` |
+| `fraud_score` | histogramme | Distribution des probabilités de fraude |
+| `model_loaded` | jauge | 1 si le modèle est chargé |
+
+Les appels techniques `/health` et `/metrics` ne sont pas comptés, pour ne pas fausser le trafic observé.
+
+### Voir les métriques
+
+1. `docker compose up --build`
+2. Générer du trafic : `python scripts/simulate_traffic.py --n 300 --rate 5`
+3. Ouvrir http://localhost:9090, menu **Status > Targets** (la cible `fraud-api` doit être `UP`), puis l'onglet **Graph**.
+
+Requêtes utiles :
+
+```
+sum(rate(http_requests_total{path="/predict"}[1m]))
+histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{path="/predict"}[1m])) by (le))
+sum(rate(fraud_predictions_total{decision="fraud"}[1m])) / sum(rate(fraud_predictions_total[1m]))
+```
+
+La dernière donne le **taux d'alerte fraude**, calculé par Prometheus à partir des deux compteurs.
 
 ## État du projet
 
