@@ -1,4 +1,5 @@
-# Service de base partage par le pipeline et l'API (meme image, projet monte dans /app)
+
+# Service commun au pipeline et à l'API
 x-python-service: &python-service
   build:
     context: .
@@ -9,7 +10,7 @@ x-python-service: &python-service
     - .:/app
 
 services:
-  # 1. Entraine le modele dans le conteneur (Python 3.12), puis s'arrete
+  # 1. Entraînement du modèle avec DVC
   pipeline:
     <<: *python-service
     environment:
@@ -17,7 +18,7 @@ services:
       - DVC_NO_ANALYTICS=1
     command: ["dvc", "repro", "--force"]
 
-  # 2. Sert le modele entraine, une fois le pipeline termine avec succes
+  # 2. API FastAPI
   api:
     <<: *python-service
     depends_on:
@@ -28,9 +29,47 @@ services:
     environment:
       - MODEL_PATH=models/model.joblib
       - THRESHOLD=0.5
-    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    command:
+      ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      test:
+        ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # 3. Collecte et stockage des métriques
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: fraud-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # 4. Visualisation des métriques
+  grafana:
+    image: grafana/grafana:latest
+    container_name: fraud-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  prometheus_data:
+  grafana_data:

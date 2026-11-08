@@ -35,3 +35,25 @@ MODEL_LOADED = Gauge(
     "model_loaded",
     "1 si le modele est charge, 0 sinon",
 )
+# Metriques de Data Drift (PSI)
+DATA_DRIFT_PSI = Gauge(
+    "data_drift_psi",
+    "Population Stability Index par variable",
+    ["feature"],
+)
+
+DATA_DRIFT_STATUS = Gauge(
+    "data_drift_status",
+    "Niveau de drift : 0=low, 1=warning, 2=high",
+    ["feature"],
+)
+
+DATA_DRIFT_SAMPLES = Gauge(
+    "data_drift_samples",
+    "Nombre de transactions utilisees lors du dernier calcul PSI",
+)
+
+DATA_DRIFT_LAST_CHECK_TIMESTAMP = Gauge(
+    "data_drift_last_check_timestamp",
+    "Horodatage Unix du dernier calcul de Data Drift",
+)

@@ -1,5 +1,8 @@
 {
-  "pr_auc": 0.15614230730079678,
-  "roc_auc": 0.8765056203731744,
-  "recall_at_5pct_fpr": 0.4909659485753996
+  "validation_pr_auc": 0.1463398489803436,
+  "validation_roc_auc": 0.8745830053370413,
+  "validation_recall_at_5pct_fpr": 0.49468462083628634,
+  "test_pr_auc": 0.150844993011808,
+  "test_roc_auc": 0.8742106143332299,
+  "test_recall_at_5pct_fpr": 0.48436414176511466
 }
