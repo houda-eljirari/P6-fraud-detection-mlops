@@ -1,3 +1,4 @@
+
 stages:
   prepare:
     cmd: python src/data/prepare.py
@@ -8,6 +9,7 @@ stages:
       - prepare
     outs:
       - data/processed/train.csv
+      - data/processed/validation.csv
       - data/processed/test.csv
 
   train:
@@ -15,10 +17,14 @@ stages:
     deps:
       - src/models/train.py
       - data/processed/train.csv
+      - data/processed/validation.csv
       - data/processed/test.csv
     params:
       - prepare.target
       - prepare.month_col
+      - prepare.train_months
+      - prepare.validation_months
+      - prepare.test_months
       - train
     outs:
       - models/model.joblib

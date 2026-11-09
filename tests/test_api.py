@@ -1,10 +1,15 @@
 """Tests de l'API FastAPI (avec un petit modele synthetique)."""
+import json
+
 import joblib
+import pandas as pd
 from fastapi.testclient import TestClient
 
+from src.api import main as api_main
 from src.api.main import create_app
 from src.api.schemas import TransactionIn
 from src.api.scoring import EXAMPLE_TRANSACTION
+from src.monitoring.drift import build_reference
 from tests.helpers import ConstantModel, train_dummy_model
 
 
@@ -85,3 +90,35 @@ def test_invalid_input_is_rejected_with_422(tmp_path):
     assert out_of_range.status_code == 422
     assert missing_field.status_code == 422
     assert extra.status_code == 422
+
+def test_drift_is_calculated_after_batch_is_complete(tmp_path, monkeypatch):
+    # Réduire la taille du lot pour faciliter le test
+    monkeypatch.setattr(api_main, "DRIFT_BATCH_SIZE", 2)
+
+    # Construire une référence avec les variables de l'API
+    reference_df = pd.DataFrame([EXAMPLE_TRANSACTION] * 10)
+    reference = build_reference(reference_df)
+
+    reference_path = tmp_path / "drift_reference.json"
+    with open(reference_path, "w", encoding="utf-8") as f:
+        json.dump(reference, f)
+
+    monkeypatch.setenv("DRIFT_REFERENCE_PATH", str(reference_path))
+
+    app = create_app(model_path=_model_file(tmp_path))
+
+    with TestClient(app) as client:
+        # Première transaction : le lot n'est pas complet
+        response1 = client.post("/predict", json=EXAMPLE_TRANSACTION)
+        assert response1.status_code == 200
+
+        # Deuxième transaction : déclenchement du calcul PSI
+        response2 = client.post("/predict", json=EXAMPLE_TRANSACTION)
+        assert response2.status_code == 200
+
+        metrics_response = client.get("/metrics")
+        assert metrics_response.status_code == 200
+
+        metrics_text = metrics_response.text
+        assert "data_drift_samples 2.0" in metrics_text
+        assert 'data_drift_psi{feature="income"}' in metrics_text

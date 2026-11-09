@@ -2,10 +2,11 @@ prepare:
   raw_path: data/raw/baf/Base.csv
   target: fraud_bool
   month_col: month
-  # Entrainement sur les 6 premiers mois, test sur les 2 derniers (split temporel)
-  train_months: [0, 1, 2, 3, 4, 5]
+
+  train_months: [0, 1, 2, 3, 4]
+  validation_months: [5]
   test_months: [6, 7]
-  # Colonnes ou -1 code une valeur manquante (a verifier avec check_missing.py)
+
   missing_value_cols:
     - prev_address_months_count
     - current_address_months_count
